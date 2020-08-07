@@ -1,0 +1,2 @@
+import SyntheticScene from synthetic_scene
+SyntheticScene()
