@@ -8,4 +8,4 @@ pip install -r requirements.txt
 ```
 
 ## SyntheticScene Class
-The synthetic scene class currently supports two methods, a ```render()``` method and a ```clear()``` method. The ```render()``` method renders a single scene according to the specified arguments, and the ```clear()``` method clears the scene prior to the next render.
+You must run the synthblend method via the command line. In order to do so, you must first change directory into the location of your blender install. There, run the command ```.\blender -b --python <LOCATION OF SYNTHBLEND.PY> -- <ADDITIONAL ARGUMENTS>```. In the additional arguments, you must at least specify the working directory, i.e., where the ```synthblend.py``` script and the backgrounds, models, and renders directories are located. You may also specify unique names for the backgrounds, models, and renders directories via the flags ```-b```, ```-m```, and ```-r```, respectively. 
