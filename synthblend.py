@@ -14,10 +14,38 @@ name of the object that they are to be applied to. This is intended for Blender 
 # import bpy
 import os
 import random
+import math
+import mathutils
 import sys
 import argparse
 import bpy 
 from addon_utils import enable
+
+def point_at(obj, target, roll=0):
+  """
+  Rotate obj to look at target
+
+  :arg obj: the object to be rotated. Usually the camera
+  :arg target: the location (3-tuple or Vector) to be looked at
+  :arg roll: The angle of rotation about the axis from obj to target in radians. 
+
+  Based on: https://blender.stackexchange.com/a/5220/12947 (ideasman42)      
+  """
+
+  loc = obj.location
+  # direction points from the object to the target
+  direction = target.location - loc
+
+  quat = direction.to_track_quat('-Z', 'Y')
+
+  # /usr/share/blender/scripts/addons/add_advanced_objects_menu/arrange_on_curve.py
+  quat = quat.to_matrix().to_4x4()
+  rollMatrix = mathutils.Matrix.Rotation(roll, 4, 'Z')
+
+  # remember the current location, since assigning to obj.matrix_world changes it
+  loc = loc.to_tuple()
+  obj.matrix_world = quat @ rollMatrix
+  obj.location = loc
 
 # Create the CLI via argparser
 argv = sys.argv[sys.argv.index('--') + 1:]
@@ -62,7 +90,7 @@ bpy.ops.wm.collada_import(filepath=work_directory + models_directory + model)
 
 # Scale up the object 
 bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY') 
-bpy.data.objects[model[:-4]].scale = (2, 2, 2)
+bpy.data.objects[model[:-4]].scale = (1, 1, 1)
 
 # Apply the mesh 
 mat = bpy.data.materials.new(name=mesh[:-4])
@@ -77,13 +105,24 @@ if bpy.context.scene.objects[model[:-4]].data.materials:
   bpy.context.scene.objects[model[:-4]].data.materials[0] = mat
 else:
   bpy.context.scene.objects[model[:-4]].data.materials.append(mat)
-    
+  
+# Choose a random spherical coordinate to assign the camera and
+# the background image to
+phi = random.random() * math.pi / 2.
+theta = random.random() * 2 * math.pi
+radius = 3
+
+# Convert the spherical coordinates to Cartesian coordinates
+x = radius * math.sin(phi) * math.cos(theta)
+y = radius * math.sin(phi) * math.sin(theta)
+z = radius * math.cos(phi)
+print("Camera at {},{},{} with rotation {} theta and {} phi".format(x, y, z, theta, phi))
+
 # Add a camera
 camera = bpy.data.cameras.new("Camera")
-camera.show_background_images = True
 camera_obj = bpy.data.objects.new("Camera", camera)
-camera_obj.location = (3, -3, 4)
-camera_obj.rotation_euler = (0.785398, 0, 0.785398)
+camera_obj.location = (x, y, z)
+point_at(camera_obj, bpy.data.objects[model[:-4]])
 bpy.context.scene.camera = camera_obj
 
 # Add the sun
@@ -96,9 +135,9 @@ bpy.context.view_layer.objects.active = light_obj
 # Import the background image 
 bpy.ops.import_image.to_plane(files=[{"name": work_directory + backgrounds_directory + background}])
 background_obj = bpy.data.objects[background[:-4]]
-background_obj.location = (-2, 2, -2)
-background_obj.rotation_euler = (0.785398, 0, 0.785398)
-background_obj.scale =  (5, 5, 5)
+background_obj.location = (-x, -y, -z)
+point_at(background_obj, bpy.data.objects[model[:-4]])
+background_obj.scale =  (4, 4, 4)
 
 # Render the final image
 bpy.context.scene.render.filepath = work_directory + renders_directory + 'render' + str(render_count) + '.jpg'
