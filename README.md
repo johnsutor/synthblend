@@ -8,7 +8,7 @@ pip install -r requirements.txt
 ```
 To start running the script, you must change your current directory into where your blender script is located. For example, 
 ```console
-$ cd C:\Program Files\Blender Foundation\Blender 2.83
+$ cd "C:\Program Files\Blender Foundation\Blender 2.83"
 ```
 Next, run the script by specifying running a Python script in Blender in headless mode. For a basic working script (assuming that your synthblend directory is stored at ```C:\synthblend\```), run 
 ```console
@@ -16,7 +16,7 @@ $ .\blender -b --python C:\synthblend\synthblend.py -- -w C:\synthblend\synthble
 ```
 This will generate an image taken from a random angle, and output it to ```C:\synthblend\renders\```
 
-## SyntheticScene Class
+## Additional Flags
 You must run the synthblend method via the command line. In order to do so, you must first change directory into the location of your blender install. There, run the command ```.\blender -b --python <LOCATION OF SYNTHBLEND.PY> -- <ADDITIONAL ARGUMENTS>```. In the additional arguments, you must at least specify the working directory, i.e., where the ```synthblend.py``` script and the backgrounds, models, and renders directories are located. You may also specify unique names for the backgrounds, models, and renders directories via the flags ```-b```, ```-m```, and ```-r```, respectively. 
 
 ## Model Directory Structure
