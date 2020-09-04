@@ -27,7 +27,12 @@ parser = argparse.ArgumentParser(prog='synthblend', description='Render syntheti
 parser.add_argument('-m', '--models', dest='models_directory', type=str)
 parser.add_argument('-b', '--backgrounds', dest='backgrounds_directory', type=str)
 parser.add_argument('-r', '--renders', dest='renders_directory', type=str)
+parser.add_argument('-ra', '--radius', dest='radius', type=float)
 parser.add_argument('-rc', '--render_count', dest='render_count', type=int)
+parser.add_argument('-pmin', '--phi_min', dest='phi_min', type=float)
+parser.add_argument('-pmax', '--phi_max', dest='phi_max', type=float)
+parser.add_argument('-tmin', '--theta_min', dest='theta_min', type=float)
+parser.add_argument('-tmax', '--theta_max', dest='theta_max', type=float)
 parser.add_argument('-w', '--work', dest='work_directory', type=str, required=True)
 args = parser.parse_known_args(argv)[0]
 
@@ -38,6 +43,13 @@ backgrounds_directory = args.backgrounds_directory if args.backgrounds_directory
 models_directory = args.models_directory if args.models_directory else '/models/'
 renders_directory = args.renders_directory if args.renders_directory else '/renders/'
 render_count = args.render_count if args.render_count else 0
+radius = args.radius if args.radius else 4
+
+# Define the angle constraints 
+phi_min = args.phi_min if args.phi_min else 0.
+phi_max = args.phi_max if args.phi_max else math.pi / 2.
+theta_min = args.theta_min if args.theta_min else 0.
+theta_max = args.theta_max if args.theta_max else 2. * math.pi
 
 # Clear the current scene
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -83,9 +95,8 @@ else:
   
 # Choose a random spherical coordinate to assign the camera and
 # the background image to
-phi = random.random() * math.pi / 2.
-theta = random.random() * 2 * math.pi
-radius = 4
+phi = (phi_max - phi_min) * random.random() + phi_min
+theta = (theta_max - theta_min) * random.random() + theta_min
 
 # Convert the spherical coordinates to Cartesian coordinates
 x = radius * math.sin(phi) * math.cos(theta)
