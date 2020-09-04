@@ -1,5 +1,5 @@
 # SynthBlend
-![Basic Render](./renders/render_00000.jpg)
+![Basic Render](./renders/render_00000.png)
 
 A library for generating simple synthetic images from withing Blender. Imposes a 3D model onto a predetermined background
 
