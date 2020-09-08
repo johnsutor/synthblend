@@ -25,16 +25,16 @@ This will generate an image taken from a random angle, and output it to ```C:\sy
 Generates a synthetic image with the supplied model, mesh, and background image 
 
 ## Options 
-```-b --backgrounds``` Specify the backround images subdirectory
-```-bb --bounding_box {YOLO}``` Specify which bounding boxes to use (default is None)
-```-m --models``` Speficy the .dae object models and meshes subdirectory
-```-r --renders``` Specify the final renders subdirectory
-```-ra --radius``` Specify the spherical coordinate radius for the camera-background system
-```-rc --render_count``` Specify the current render count.  **NOTE** This will not create more renders, this is only useful as a naming convention when generating large amounts of synthetic data. 
-```-pmin --phi_min``` Specify the minimum angle phi (angle from the vertical), in radians, to rotate the camera-background system. Must be between 0 and pi / 2, inclusive.
-```-pmax --phi_max``` Specify the maximum angle phi (angle from the vertical), in radians, to rotate the camera-background system. Must be between 0 and pi / 2, inclusive.
-```-tmin | --theta_min``` Specify the minimun angle theta (angle about the horizontal), in radians, to rotate the camera-background system. Must be between 0 and 2 * pi, inclusive.
-```-tmax | --theta_max``` Specify the maximum angle theta (angle about the horizontal), in radians, to rotate the camera-background system. Must be between 0 and 2 * pi, inclusive.
+```-b --backgrounds``` Specify the backround images subdirectory  
+```-bb --bounding_box {YOLO}``` Specify which bounding boxes to use (default is None)  
+```-m --models``` Speficy the .dae object models and meshes subdirectory  
+```-r --renders``` Specify the final renders subdirectory  
+```-ra --radius``` Specify the spherical coordinate radius for the camera-background system  
+```-rc --render_count``` Specify the current render count.  **NOTE** This will not create more renders, this is only useful as a naming convention when generating large amounts of synthetic data.  
+```-pmin --phi_min``` Specify the minimum angle phi (angle from the vertical), in radians, to rotate the camera-background system. Must be between 0 and pi / 2, inclusive.  
+```-pmax --phi_max``` Specify the maximum angle phi (angle from the vertical), in radians, to rotate the camera-background system. Must be between 0 and pi / 2, inclusive.  
+```-tmin | --theta_min``` Specify the minimun angle theta (angle about the horizontal), in radians, to rotate the camera-background system. Must be between 0 and 2 * pi, inclusive.  
+```-tmax | --theta_max``` Specify the maximum angle theta (angle about the horizontal), in radians, to rotate the camera-background system. Must be between 0 and 2 * pi, inclusive.  
 
 ## Model Directory Structure
 Although there is some degree of lee-way in how you choose to organize your directories, the models directory is strict in terms of how files and subdirectories within it should be formatted. Within the models directory, models should be made available in the ```.dae``` file format. Additionally, each ```.dae``` object should have the same name as its accompanying file. Otherwise, blender will not be able to locate the object. To specify the meshes applicable to each object, create a directory within the models directory that shares the same name as the ```.dae``` file. In this directory that contains the meshes to be applied at random to the ```.dae``` model, the naming conventions for the image formats does not matter.
