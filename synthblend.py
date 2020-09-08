@@ -19,6 +19,7 @@ import mathutils
 import sys
 import argparse
 import bpy 
+import bpy_extras
 from addon_utils import enable
 
 # Create the CLI via argparser
@@ -26,6 +27,7 @@ argv = sys.argv[sys.argv.index('--') + 1:]
 parser = argparse.ArgumentParser(prog='synthblend', description='Render synthetic images via Blender')
 parser.add_argument('-m', '--models', dest='models_directory', type=str)
 parser.add_argument('-b', '--backgrounds', dest='backgrounds_directory', type=str)
+parser.add_argument('-bb', '--bounding_box', dest='bounding_box', type=str)
 parser.add_argument('-r', '--renders', dest='renders_directory', type=str)
 parser.add_argument('-ra', '--radius', dest='radius', type=float)
 parser.add_argument('-rc', '--render_count', dest='render_count', type=int)
@@ -40,10 +42,13 @@ args = parser.parse_known_args(argv)[0]
 work_directory = args.work_directory
 blender_directory = os.getcwd()
 backgrounds_directory = args.backgrounds_directory if args.backgrounds_directory else '/backgrounds/'
+bounding_box = args.bounding_box if args.bounding_box else None
 models_directory = args.models_directory if args.models_directory else '/models/'
 renders_directory = args.renders_directory if args.renders_directory else '/renders/'
 render_count = args.render_count if args.render_count else 0
 radius = args.radius if args.radius else 4
+
+print('bounding box is ', bounding_box) 
 
 # Define the angle constraints 
 phi_min = args.phi_min if args.phi_min else 0.
@@ -102,7 +107,6 @@ theta = (theta_max - theta_min) * random.random() + theta_min
 x = radius * math.sin(phi) * math.cos(theta)
 y = radius * math.sin(phi) * math.sin(theta)
 z = radius * math.cos(phi)
-print("Camera at {},{},{} with rotation {} theta and {} phi".format(x, y, z, theta, phi))
 
 # Add a camera
 camera = bpy.data.cameras.new("Camera")
@@ -128,3 +132,26 @@ background_obj.scale =  (4, 4, 4)
 # Render the final image
 bpy.context.scene.render.filepath = work_directory + renders_directory + 'render_' + str(render_count).zfill(5) + '.jpg'
 bpy.ops.render.render(write_still = True)
+
+# Determine the bounding box
+if bounding_box is not None: 
+  xlist, ylist = [], []
+  # Print all vertices 
+  for v in bpy.data.objects[model[:-4]].data.vertices:
+    coord = bpy.data.objects[model[:-4]].matrix_world @ v.co
+    
+    # Get the location on the final rendered image
+    img_loc = bpy_extras.object_utils.world_to_camera_view(bpy.context.scene, bpy.context.scene.camera, coord)
+    xlist.append(img_loc.x)
+    ylist.append(img_loc.y)
+      
+  # Choose the bounding coordinates 
+  min_x = 0. if min(xlist) < 0. else 1. if min(xlist) > 1. else min(xlist)
+  max_x = 0. if max(xlist) < 0. else 1. if max(xlist) > 1. else max(xlist)
+  min_y = 0. if min(ylist) < 0. else 1. if min(ylist) > 1. else min(ylist)
+  max_y = 0. if max(ylist) < 0. else 1. if max(ylist) > 1. else max(ylist)
+
+  # Output coordinates YOLO format
+  if bounding_box == 'YOLO':
+    with open( work_directory + renders_directory + 'render_' + str(render_count).zfill(5) + '.txt', 'w') as f:
+      f.write(f'0 {str((max_x - min_x)/2 + min_x)} {str(1 - ((max_y - min_y)/2 + min_y))} {str(max_x - min_x)} {str(max_y - min_y)}')
