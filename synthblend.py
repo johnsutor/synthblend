@@ -82,6 +82,7 @@ bpy.ops.wm.collada_import(filepath=work_directory + models_directory + model)
 # Scale up the object 
 bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY') 
+print(bpy.data.objects.keys())
 bpy.data.objects[model[:-4]].scale = (1, 1, 1)
 
 # Apply the mesh 
