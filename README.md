@@ -3,6 +3,9 @@
 
 A library for generating simple synthetic images from withing Blender. Imposes a 3D model onto a predetermined background
 
+## Requirements 
+This library requires a Blender install of version >= 2.80. In order to work with models not already within the models directory, you must name your object the same as your file name. 
+
 ## Getting Started
 There are no external dependencies to install for ```synthblend.py```, though if they exist in the future, they may be installed with 
 ```
