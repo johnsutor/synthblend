@@ -7,7 +7,7 @@ Script for generating many synthetic images
 import os 
 
 BLENDER_DIR = "C:\Program Files\Blender Foundation\Blender 2.83"
-NUM_RENDERS =  500 
+NUM_RENDERS =  1 
 
 # Determine the working directory 
 WORK_DIR = os.getcwd()

@@ -82,8 +82,16 @@ bpy.ops.wm.collada_import(filepath=work_directory + models_directory + model)
 # Scale up the object 
 bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY') 
-print(bpy.data.objects.keys())
 bpy.data.objects[model[:-4]].scale = (1, 1, 1)
+
+# Set objects color to black by default 
+for obj in bpy.data.objects.keys():
+  for slot in bpy.data.objects[obj].material_slots:
+      new_mat = bpy.data.materials.new(name="black")
+      new_mat.diffuse_color = (0,0,0, 1)
+      slot.material = new_mat
+  # print(dbpy.data.objects[obj].data)
+  # bpy.data.objects[obj].color = (1, 0, 0, 1)
 
 # Apply the mesh 
 mat = bpy.data.materials.new(name=mesh[:-4])
@@ -109,6 +117,11 @@ x = radius * math.sin(phi) * math.cos(theta)
 y = radius * math.sin(phi) * math.sin(theta)
 z = radius * math.cos(phi)
 
+# Choose a random offset for the x, y, and z direction 
+x += 0.1 * random.random() * x
+y +=  0.1 * random.random() * y
+z += 0.1 * random.random() * z
+
 # Add a camera
 camera = bpy.data.cameras.new("Camera")
 camera_obj = bpy.data.objects.new("Camera", camera)
@@ -117,9 +130,10 @@ camera_obj.rotation_euler = (phi, 0., theta + math.pi / 2)
 bpy.context.scene.camera = camera_obj
 
 # Add the sun
-light = bpy.data.lights.new(name="Light", type='SUN')
+light = bpy.data.lights.new(name="Light", type='POINT')
+light.energy = 750
 light_obj = bpy.data.objects.new("Light", light)
-light_obj.location = (3, -3, float('inf'))
+light_obj.location = (x, y, z)
 bpy.context.collection.objects.link(light_obj)
 bpy.context.view_layer.objects.active = light_obj
 
