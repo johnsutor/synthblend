@@ -26,7 +26,6 @@ from addon_utils import enable
 argv = sys.argv[sys.argv.index('--') + 1:]
 parser = argparse.ArgumentParser(prog='synthblend', description='Render synthetic images via Blender')
 parser.add_argument('-m', '--models', dest='models_directory', type=str)
-parser.add_argument('-b', '--backgrounds', dest='backgrounds_directory', type=str)
 parser.add_argument('-bb', '--bounding_box', dest='bounding_box', type=str)
 parser.add_argument('-r', '--renders', dest='renders_directory', type=str)
 parser.add_argument('-ra', '--radius', dest='radius', type=float)
@@ -41,7 +40,6 @@ args = parser.parse_known_args(argv)[0]
 # Define the global variables 
 work_directory = args.work_directory
 blender_directory = os.getcwd()
-backgrounds_directory = args.backgrounds_directory if args.backgrounds_directory else '/backgrounds/'
 bounding_box = args.bounding_box if args.bounding_box else None
 models_directory = args.models_directory if args.models_directory else '/models/'
 renders_directory = args.renders_directory if args.renders_directory else '/renders/'
@@ -69,12 +67,6 @@ model = random.choice(models_list)
 # Load in the list of meshes, and randomly choose a mesh 
 meshes_list = os.listdir(work_directory + models_directory + model[:-4])
 mesh = random.choice(meshes_list)
-
-# Load in the list of backgrounds 
-backgrounds_list = os.listdir(work_directory + backgrounds_directory)
-
-# Randomly choose a background for the model
-background = random.choice(backgrounds_list)
 
 # Load in the model
 bpy.ops.wm.collada_import(filepath=work_directory + models_directory + model)
@@ -137,12 +129,8 @@ light_obj.location = (x, y, z)
 bpy.context.collection.objects.link(light_obj)
 bpy.context.view_layer.objects.active = light_obj
 
-# Import the background image 
-bpy.ops.import_image.to_plane(files=[{"name": work_directory + backgrounds_directory + background}])
-background_obj = bpy.data.objects[background[:-4]]
-background_obj.location = (-x, -y, -z)
-background_obj.rotation_euler = (phi, 0., theta + math.pi / 2)
-background_obj.scale =  (4, 4, 4)
+# Set the background of the scene as transparent 
+bpy.context.scene.render.film_transparent = True
 
 # Render the final image
 bpy.context.scene.render.filepath = work_directory + renders_directory + 'render_' + str(render_count).zfill(5) + '.jpg'

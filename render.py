@@ -4,7 +4,9 @@ September 25, 2020
 
 Script for generating many synthetic images 
 '''
-import os 
+import os
+from PIL import Image 
+import random 
 
 BLENDER_DIR = "C:\Program Files\Blender Foundation\Blender 2.83"
 NUM_RENDERS =  1 
@@ -16,3 +18,25 @@ WORK_DIR = os.getcwd()
 os.chdir(BLENDER_DIR)
 for i in range(NUM_RENDERS):
     os.system("blender -b --python " + WORK_DIR + "/synthblend.py -- -w " + WORK_DIR + " -rc " + str(i + 1) + " -bb YOLO -ra 3 -pmin 1.0471975512")
+
+# Add a background to each of the renders
+for img in os.listdir(WORK_DIR + '/renders/'):
+    if not '.txt' in img:  
+        # Import the render
+        render = Image.open(WORK_DIR + '/renders/' + img)
+        rw, rh = render.size 
+
+        # Choose a random background 
+        background = random.choice(os.listdir(WORK_DIR + '/backgrounds/'))
+        background = Image.open(WORK_DIR + '/backgrounds/' + background)
+        bw, bh = render.size
+
+        # Resize the background to match the render 
+        background = background.resize((rw, rh))
+
+        # Center crop the background based on the render size
+        # background = background.crop(((bw - rw) / 2, (bh - rh)/2, (bw + rw)/2, (bh + rh)/2))
+        
+        # Merge the background and the render 
+        background.paste(render, (0,0), mask=render)
+        background.save(WORK_DIR + '/renders/' + img)
