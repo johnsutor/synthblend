@@ -98,6 +98,13 @@ if bpy.context.scene.objects[model[:-4]].data.materials:
   bpy.context.scene.objects[model[:-4]].data.materials[0] = mat
 else:
   bpy.context.scene.objects[model[:-4]].data.materials.append(mat)
+
+# Get the object's lower z bound to attach the plane to 
+min_z = float("inf")
+for p in bpy.context.scene.objects[model[:-4]].bound_box:
+  if p[-1] < min_z:
+    min_z = p[-1]
+
   
 # Choose a random spherical coordinate to assign the camera and
 # the background image to
@@ -135,7 +142,7 @@ bpy.context.view_layer.objects.active = light_obj
 bpy.context.scene.render.film_transparent = True
 
 # Add the image shadow
-bpy.ops.mesh.primitive_plane_add(enter_editmode=False, align='WORLD', location=(0, 0, -0.2))
+bpy.ops.mesh.primitive_plane_add(enter_editmode=False, align='WORLD', location=(0, 0, min_z + bpy.context.scene.objects[model[:-4]].location[-1]))
 plane = bpy.data.objects["Plane"]
 # plane.scale = (1, 1, 1)
 
