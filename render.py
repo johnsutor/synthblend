@@ -23,12 +23,12 @@ for i in range(NUM_RENDERS):
 for img in os.listdir(WORK_DIR + '/renders/'):
     if not '.txt' in img:  
         # Import the render
-        render = Image.open(WORK_DIR + '/renders/' + img)
+        render = Image.open(WORK_DIR + '/renders/' + img).convert("RGBA")
         rw, rh = render.size 
 
         # Choose a random background 
         background = random.choice(os.listdir(WORK_DIR + '/backgrounds/'))
-        background = Image.open(WORK_DIR + '/backgrounds/' + background)
+        background = Image.open(WORK_DIR + '/backgrounds/' + background).convert("RGBA")
         bw, bh = render.size
 
         # Resize the background to match the render 
