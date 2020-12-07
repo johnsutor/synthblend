@@ -6,10 +6,15 @@ Script for generating many synthetic images
 '''
 import os
 from PIL import Image 
+from skimage.io import imsave, imread
+from albumentations.augmentations.transforms import GaussianBlur
+from albumentations.imgaug.transforms import IAAAdditiveGaussianNoise
+import albumentations
+import numpy as np
 import random 
 
 BLENDER_DIR = "C:\Program Files\Blender Foundation\Blender 2.83"
-NUM_RENDERS =  1 
+NUM_RENDERS =  10
 
 # Determine the working directory 
 WORK_DIR = os.getcwd()
@@ -22,6 +27,7 @@ for i in range(NUM_RENDERS):
 # Add a background to each of the renders
 for img in os.listdir(WORK_DIR + '/renders/'):
     if not '.txt' in img:  
+        print('let\'s go')
         # Import the render
         render = Image.open(WORK_DIR + '/renders/' + img).convert("RGBA")
         rw, rh = render.size 
@@ -40,3 +46,16 @@ for img in os.listdir(WORK_DIR + '/renders/'):
         # Merge the background and the render 
         background.paste(render, (0,0), mask=render)
         background.save(WORK_DIR + '/renders/' + img)
+
+        # Set the image transforms
+        transforms = albumentations.Compose([
+            GaussianBlur(blur_limit=(3,5)),
+            IAAAdditiveGaussianNoise()
+        ])
+
+        # Apply the Gaussian Filter to the image 
+        image = imread(WORK_DIR + '/renders/' + img)
+        
+        image = transforms(image=image)
+
+        imsave(WORK_DIR + '/renders/' + img, image["image"])
