@@ -58,11 +58,12 @@ theta_max = args.theta_max if args.theta_max else 2. * math.pi
 bpy.ops.wm.read_factory_settings(use_empty=True)
 
 # Ensure that the import images as planes add-on is enabled
-enable("io_import_images_as_planes")
+# enable("io_import_images_as_planes")
 
-# Load in the list of models, and randomly choose a model 
+# Load in the list of models, and choose one based on the render count
+print(render_count - 1)
 models_list = [file for file in os.listdir(work_directory + models_directory) if file[-4:] == '.dae']
-model = random.choice(models_list)
+model = models_list[(render_count - 1)  % len(models_list)] 
 
 # Load in the list of meshes, and randomly choose a mesh 
 meshes_list = os.listdir(work_directory + models_directory + model[:-4])
