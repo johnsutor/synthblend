@@ -46,8 +46,6 @@ renders_directory = args.renders_directory if args.renders_directory else '/rend
 render_count = args.render_count if args.render_count else 0
 radius = args.radius if args.radius else 4
 
-print('bounding box is ', bounding_box) 
-
 # Define the angle constraints 
 phi_min = args.phi_min if args.phi_min else 0.
 phi_max = args.phi_max if args.phi_max else math.pi / 2.
@@ -62,15 +60,12 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 
 # Load in the list of models, and choose one based on the render count
 print(render_count - 1)
-models_list = [file for file in os.listdir(work_directory + models_directory) if file[-4:] == '.dae']
-model = models_list[(render_count - 1)  % len(models_list)] 
-
-# Load in the list of meshes, and randomly choose a mesh 
-meshes_list = os.listdir(work_directory + models_directory + model[:-4])
-mesh = random.choice(meshes_list)
+models_list = [folder for folder in os.listdir(work_directory + models_directory)]
+model_folder = models_list[(render_count - 1)  % len(models_list)] 
+model = [f for f in os.listdir(work_directory + models_directory + model_folder) if f[-4:] == '.dae'][0]
 
 # Load in the model
-bpy.ops.wm.collada_import(filepath=work_directory + models_directory + model)
+bpy.ops.wm.collada_import(filepath=work_directory + models_directory + model_folder + "/" + model)
 
 # Scale up the object 
 bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
@@ -78,27 +73,34 @@ bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 bpy.data.objects[model[:-4]].scale = (1, 1, 1)
 
 # Set objects color to black by default 
-for obj in bpy.data.objects.keys():
-  for slot in bpy.data.objects[obj].material_slots:
-      new_mat = bpy.data.materials.new(name="black")
-      new_mat.diffuse_color = (0,0,0, 1)
-      slot.material = new_mat
+# for obj in bpy.data.objects.keys():
+#   for slot in bpy.data.objects[obj].material_slots:
+#       new_mat = bpy.data.materials.new(name="black")
+#       new_mat.diffuse_color = (0,0,0, 1)
+#       slot.material = new_mat
   # print(dbpy.data.objects[obj].data)
   # bpy.data.objects[obj].color = (1, 0, 0, 1)
 
-# Apply the mesh 
-mat = bpy.data.materials.new(name=mesh[:-4])
-mat.use_nodes = True
-bsdf = mat.node_tree.nodes["Principled BSDF"]
-texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
-texImage.image = bpy.data.images.load(filepath=work_directory + models_directory + model[:-4] + "/" + mesh)
-mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
+try:
+  # Load in the list of meshes, and randomly choose a mesh 
+  meshes_list = os.listdir(work_directory + models_directory + model[:-4])
+  mesh = random.choice(meshes_list)
 
-# Assign it to object
-if bpy.context.scene.objects[model[:-4]].data.materials:
-  bpy.context.scene.objects[model[:-4]].data.materials[0] = mat
-else:
-  bpy.context.scene.objects[model[:-4]].data.materials.append(mat)
+  # Apply the mesh
+  mat = bpy.data.materials.new(name=mesh[:-4])
+  mat.use_nodes = True
+  bsdf = mat.node_tree.nodes["Principled BSDF"]
+  texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
+  texImage.image = bpy.data.images.load(filepath=work_directory + models_directory + model[:-4] + "/" + mesh)
+  mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
+
+  # Assign it to object
+  if bpy.context.scene.objects[model[:-4]].data.materials:
+    bpy.context.scene.objects[model[:-4]].data.materials[0] = mat
+  else:
+    bpy.context.scene.objects[model[:-4]].data.materials.append(mat)
+except:
+  print("No mesh found...")
 
 # Get the object's lower z bound to attach the plane to 
 min_z = float("inf")

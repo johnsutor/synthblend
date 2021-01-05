@@ -14,7 +14,7 @@ import numpy as np
 import random 
 
 BLENDER_DIR = "C:\Program Files\Blender Foundation\Blender 2.83"
-NUM_RENDERS =  10
+NUM_RENDERS =  1
 
 # Determine the working directory 
 WORK_DIR = os.getcwd()
@@ -22,12 +22,11 @@ WORK_DIR = os.getcwd()
 # Change to blender and run the render script 
 os.chdir(BLENDER_DIR)
 for i in range(NUM_RENDERS):
-    os.system("blender -b --python " + WORK_DIR + "/synthblend.py -- -w " + WORK_DIR + " -rc " + str(i + 1) + " -bb YOLO -ra 3 -pmin 1.0471975512")
+    os.system("blender -b --python " + WORK_DIR + "/synthblend.py -- -w " + WORK_DIR + " -rc " + str(i + 1) + " -ra 3")
 
 # Add a background to each of the renders
 for img in os.listdir(WORK_DIR + '/renders/'):
     if not '.txt' in img:  
-        print('let\'s go')
         # Import the render
         render = Image.open(WORK_DIR + '/renders/' + img).convert("RGBA")
         rw, rh = render.size 
