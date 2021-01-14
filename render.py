@@ -7,15 +7,15 @@ Script for generating many synthetic images
 import os
 from PIL import Image 
 from skimage.io import imsave, imread
-from albumentations.augmentations.transforms import GaussianBlur
-from albumentations.imgaug.transforms import IAAAdditiveGaussianNoise
+from albumentations.augmentations.transforms import GaussianBlur, GaussNoise, ColorJitter, Rotate  
+# from albumentations.augmentations.geometric.rotate import Rotate
 import albumentations
 import numpy as np
 import random 
 from joblib import Parallel, delayed
 
 BLENDER_DIR = "C:\Program Files\Blender Foundation\Blender 2.83"
-NUM_RENDERS =  5000
+NUM_RENDERS =  10
 
 # Determine the working directory 
 WORK_DIR = os.getcwd()
@@ -51,13 +51,16 @@ def apply_background(img):
         # Set the image transforms
         transforms = albumentations.Compose([
             GaussianBlur(blur_limit=(3,5)),
-            IAAAdditiveGaussianNoise()
+            ColorJitter(),
+            Rotate(limit=45, border_mode=2),
+            GaussNoise()
         ])
 
-        # Apply the Gaussian Filter to the image 
+        # Apply the transforms to the image 
         image = imread(WORK_DIR + '/renders/' + img)
-        
         image = transforms(image=image)
+
+        print(f"Applying background and augmentations to {WORK_DIR + '/renders/' + img}")
 
         imsave(WORK_DIR + '/renders/' + img, image["image"])
 

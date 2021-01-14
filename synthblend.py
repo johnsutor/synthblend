@@ -35,6 +35,8 @@ parser.add_argument('-pmax', '--phi_max', dest='phi_max', type=float)
 parser.add_argument('-tmin', '--theta_min', dest='theta_min', type=float)
 parser.add_argument('-tmax', '--theta_max', dest='theta_max', type=float)
 parser.add_argument('-w', '--work', dest='work_directory', type=str, required=True)
+parser.add_argument('-s', '--shadow', dest='shadow', type=bool)
+
 args = parser.parse_known_args(argv)[0]
 
 # Define the global variables 
@@ -45,6 +47,7 @@ models_directory = args.models_directory if args.models_directory else '/models/
 renders_directory = args.renders_directory if args.renders_directory else '/renders/'
 render_count = args.render_count if args.render_count else 0
 radius = args.radius if args.radius else 4
+shadow = args.shadow if args.shadow else False
 
 # Define the angle constraints 
 phi_min = args.phi_min if args.phi_min else 0.
@@ -73,18 +76,17 @@ bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 bpy.data.objects[model[:-4]].scale = (1, 1, 1)
 
 # Set objects color to black by default 
-# for obj in bpy.data.objects.keys():
-#   for slot in bpy.data.objects[obj].material_slots:
-#       new_mat = bpy.data.materials.new(name="black")
-#       new_mat.diffuse_color = (0,0,0, 1)
-#       slot.material = new_mat
-  # print(dbpy.data.objects[obj].data)
-  # bpy.data.objects[obj].color = (1, 0, 0, 1)
+for obj in bpy.data.objects.keys():
+  for slot in bpy.data.objects[obj].material_slots:
+      new_mat = bpy.data.materials.new(name="black")
+      new_mat.diffuse_color = (0,0,0, 1)
+      slot.material = new_mat
+  print(bpy.data.objects[obj].data)
+  bpy.data.objects[obj].color = (1, 0, 0, 1)
 
 try:
-  # Load in the list of meshes, and randomly choose a mesh 
-  meshes_list = os.listdir(work_directory + models_directory + model[:-4])
-  mesh = random.choice(meshes_list)
+  # Apply the default object mesh
+  mesh = [f for f in os.listdir(work_directory + models_directory + model_folder) if f[-4:] in ['.png', '.jpg', 'jpeg']][0]
 
   # Apply the mesh
   mat = bpy.data.materials.new(name=mesh[:-4])
@@ -99,6 +101,7 @@ try:
     bpy.context.scene.objects[model[:-4]].data.materials[0] = mat
   else:
     bpy.context.scene.objects[model[:-4]].data.materials.append(mat)
+
 except:
   print("No mesh found...")
 
@@ -108,7 +111,6 @@ for p in bpy.context.scene.objects[model[:-4]].bound_box:
   if p[-1] < min_z:
     min_z = p[-1]
 
-  
 # Choose a random spherical coordinate to assign the camera and
 # the background image to
 phi = (phi_max - phi_min) * random.random() + phi_min
@@ -133,9 +135,9 @@ bpy.context.scene.camera = camera_obj
 
 # Add the sun
 light = bpy.data.lights.new(name="Light", type='SUN')
-# light.energy = 100
+light.energy = 2
 light_obj = bpy.data.objects.new("Light", light)
-light_obj.location = (x, y, z)
+light_obj.location = (x, y, float('inf'))
 # light_obj.scale = (radius, radius, 1)
 # light_obj.rotation_euler = (phi, 0., theta + math.pi / 2)
 bpy.context.collection.objects.link(light_obj)
@@ -144,54 +146,55 @@ bpy.context.view_layer.objects.active = light_obj
 # Set the background of the scene as transparent 
 bpy.context.scene.render.film_transparent = True
 
+if shadow:
 # Add the image shadow
-bpy.ops.mesh.primitive_plane_add(enter_editmode=False, align='WORLD', location=(0, 0, min_z + bpy.context.scene.objects[model[:-4]].location[-1]))
-plane = bpy.data.objects["Plane"]
-# plane.scale = (1, 1, 1)
+  bpy.ops.mesh.primitive_plane_add(enter_editmode=False, align='WORLD', location=(0, 0, min_z + bpy.context.scene.objects[model[:-4]].location[-1]))
+  plane = bpy.data.objects["Plane"]
+  # plane.scale = (1, 1, 1)
 
-plane_material = bpy.data.materials.new(name="PlaneMaterial")
-plane_material.use_nodes = True
-plane.data.materials.append(plane_material)
+  plane_material = bpy.data.materials.new(name="PlaneMaterial")
+  plane_material.use_nodes = True
+  plane.data.materials.append(plane_material)
 
-# Clear all nodes to start 
-if plane_material.node_tree:
+  # Clear all nodes to start 
+  if plane_material.node_tree:
     plane_material.node_tree.links.clear()
     plane_material.node_tree.nodes.clear()
 
-# Edit the node tree
-bpy.context.active_object.active_material = plane_material
+  # Edit the node tree
+  bpy.context.active_object.active_material = plane_material
 
-node_tree = bpy.context.active_object.active_material.node_tree
+  node_tree = bpy.context.active_object.active_material.node_tree
 
-bsdf_diffuse = node_tree.nodes.new(type="ShaderNodeBsdfDiffuse")
-shader_to_rgb = node_tree.nodes.new(type="ShaderNodeShaderToRGB")
+  bsdf_diffuse = node_tree.nodes.new(type="ShaderNodeBsdfDiffuse")
+  shader_to_rgb = node_tree.nodes.new(type="ShaderNodeShaderToRGB")
 
-# Link the BSDF Diffuse to the RGB Converter
-node_tree.links.new(bsdf_diffuse.outputs[0], shader_to_rgb.inputs[0])
+  # Link the BSDF Diffuse to the RGB Converter
+  node_tree.links.new(bsdf_diffuse.outputs[0], shader_to_rgb.inputs[0])
 
-color_ramp = node_tree.nodes.new(type="ShaderNodeValToRGB")
+  color_ramp = node_tree.nodes.new(type="ShaderNodeValToRGB")
 
-# Link the RGB Converter to the BW Converter
-node_tree.links.new(shader_to_rgb.outputs[0], color_ramp.inputs[0])
+  # Link the RGB Converter to the BW Converter
+  node_tree.links.new(shader_to_rgb.outputs[0], color_ramp.inputs[0])
 
-mixer = node_tree.nodes.new(type="ShaderNodeMixShader")
-bsdf_diffuse_2 = node_tree.nodes.new(type="ShaderNodeBsdfDiffuse")
-bsdf_transparent = node_tree.nodes.new(type="ShaderNodeBsdfTransparent")
+  mixer = node_tree.nodes.new(type="ShaderNodeMixShader")
+  bsdf_diffuse_2 = node_tree.nodes.new(type="ShaderNodeBsdfDiffuse")
+  bsdf_transparent = node_tree.nodes.new(type="ShaderNodeBsdfTransparent")
 
-# Set the bsdf diffuse to black
-bsdf_diffuse_2.inputs[0].default_value = (0,0,0,1)
+  # Set the bsdf diffuse to black
+  bsdf_diffuse_2.inputs[0].default_value = (0,0,0,1)
 
-# Link the mixer to the BSDF Transparent and the BW Converter
-node_tree.links.new(color_ramp.outputs[0], mixer.inputs[0])
-node_tree.links.new(bsdf_diffuse_2.outputs[0], mixer.inputs[1])
-node_tree.links.new(bsdf_transparent.outputs[0], mixer.inputs[2])
+  # Link the mixer to the BSDF Transparent and the BW Converter
+  node_tree.links.new(color_ramp.outputs[0], mixer.inputs[0])
+  node_tree.links.new(bsdf_diffuse_2.outputs[0], mixer.inputs[1])
+  node_tree.links.new(bsdf_transparent.outputs[0], mixer.inputs[2])
 
-# Create an output and link it 
-output = node_tree.nodes.new(type="ShaderNodeOutputMaterial")
-node_tree.links.new(mixer.outputs[0], output.inputs[0])
+  # Create an output and link it 
+  output = node_tree.nodes.new(type="ShaderNodeOutputMaterial")
+  node_tree.links.new(mixer.outputs[0], output.inputs[0])
 
-# Set the blend method for the material
-plane_material.blend_method = 'BLEND'
+  # Set the blend method for the material
+  plane_material.blend_method = 'BLEND'
 
 # Render the final image
 bpy.context.scene.render.filepath = work_directory + renders_directory + 'render_' + str(render_count).zfill(5) + '.jpg'
