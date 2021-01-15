@@ -34,6 +34,8 @@ parser.add_argument('-pmin', '--phi_min', dest='phi_min', type=float)
 parser.add_argument('-pmax', '--phi_max', dest='phi_max', type=float)
 parser.add_argument('-tmin', '--theta_min', dest='theta_min', type=float)
 parser.add_argument('-tmax', '--theta_max', dest='theta_max', type=float)
+parser.add_argument('-ims', '--img_size', dest='img_size', type=int)
+parser.add_argument('-sp', '--scale_param', dest='scale_param', type=float)
 parser.add_argument('-w', '--work', dest='work_directory', type=str, required=True)
 parser.add_argument('-s', '--shadow', dest='shadow', type=bool)
 
@@ -48,7 +50,8 @@ renders_directory = args.renders_directory if args.renders_directory else '/rend
 render_count = args.render_count if args.render_count else 0
 radius = args.radius if args.radius else 4
 shadow = args.shadow if args.shadow else False
-img_size = 1024
+img_size = args.img_size if args.img_size else 1024
+scale_param = args.scale_param if args.scale_param else 0.3
 
 # Define the angle constraints 
 phi_min = args.phi_min if args.phi_min else 0.
@@ -71,10 +74,14 @@ model = [f for f in os.listdir(work_directory + models_directory + model_folder)
 # Load in the model
 bpy.ops.wm.collada_import(filepath=work_directory + models_directory + model_folder + "/" + model)
 
-# Scale up the object 
+# Set the default scale for the object
 bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
 bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY') 
 bpy.data.objects[model[:-4]].scale = (1, 1, 1)
+
+# Randomly modify the scale (on all axes)
+scale = scale_param * (2* random.random() - 1)
+bpy.data.objects[model[:-4]].scale = (1 + scale_param, 1 + scale_param, 1 + scale_param)
 
 # Set objects color to black by default 
 for obj in bpy.data.objects.keys():
