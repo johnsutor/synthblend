@@ -55,7 +55,7 @@ scale_param = args.scale_param if args.scale_param else 0.3
 
 # Define the angle constraints 
 phi_min = args.phi_min if args.phi_min else 0.
-phi_max = args.phi_max if args.phi_max else math.pi / 6.
+phi_max = args.phi_max if args.phi_max else math.pi / 2.
 theta_min = args.theta_min if args.theta_min else 0.
 theta_max = args.theta_max if args.theta_max else 2. * math.pi
 

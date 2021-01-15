@@ -14,7 +14,7 @@ import random
 from joblib import Parallel, delayed
 
 BLENDER_DIR = "C:\Program Files\Blender Foundation\Blender 2.83"
-NUM_RENDERS =  10
+NUM_RENDERS =  50
 
 # Determine the working directory 
 WORK_DIR = os.getcwd()
@@ -49,12 +49,12 @@ def apply_background(img):
 
         # Set the image transforms
         transforms = albumentations.Compose([
-            GaussianBlur(blur_limit=(3,5), p=1),
-            GaussNoise(p=1),
-            HorizontalFlip(p=1),
-            Rotate(limit=45,p=1),
-            ColorJitter(p=1),
-            RandomBrightnessContrast(p=1)
+            GaussianBlur(blur_limit=(3,5)),
+            GaussNoise(),
+            HorizontalFlip(),
+            Rotate(limit=45),
+            ColorJitter(),
+            RandomBrightnessContrast()
         ])
 
         # Apply the transforms to the image 
