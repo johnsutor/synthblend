@@ -6,9 +6,8 @@ Script for generating many synthetic images
 '''
 import os
 from PIL import Image 
-from skimage.io import imsave, imread
-from albumentations.augmentations.transforms import GaussianBlur, GaussNoise, ColorJitter, Rotate  
-# from albumentations.augmentations.geometric.rotate import Rotate
+from imageio import imread, imsave
+from albumentations.augmentations.transforms import GaussianBlur, GaussNoise, ColorJitter, RandomBrightnessContrast, Rotate, HorizontalFlip
 import albumentations
 import numpy as np
 import random 
@@ -50,14 +49,16 @@ def apply_background(img):
 
         # Set the image transforms
         transforms = albumentations.Compose([
-            GaussianBlur(blur_limit=(3,5)),
-            ColorJitter(),
-            Rotate(limit=45, border_mode=2),
-            GaussNoise()
+            GaussianBlur(blur_limit=(3,5), p=1),
+            GaussNoise(p=1),
+            HorizontalFlip(p=1),
+            Rotate(limit=45,p=1),
+            ColorJitter(p=1),
+            RandomBrightnessContrast(p=1)
         ])
 
         # Apply the transforms to the image 
-        image = imread(WORK_DIR + '/renders/' + img)
+        image = imread(WORK_DIR + '/renders/' + img, pilmode='RGB')
         image = transforms(image=image)
 
         print(f"Applying background and augmentations to {WORK_DIR + '/renders/' + img}")

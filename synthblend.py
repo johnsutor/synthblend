@@ -48,10 +48,11 @@ renders_directory = args.renders_directory if args.renders_directory else '/rend
 render_count = args.render_count if args.render_count else 0
 radius = args.radius if args.radius else 4
 shadow = args.shadow if args.shadow else False
+img_size = 1024
 
 # Define the angle constraints 
 phi_min = args.phi_min if args.phi_min else 0.
-phi_max = args.phi_max if args.phi_max else math.pi / 2.
+phi_max = args.phi_max if args.phi_max else math.pi / 6.
 theta_min = args.theta_min if args.theta_min else 0.
 theta_max = args.theta_max if args.theta_max else 2. * math.pi
 
@@ -195,6 +196,10 @@ if shadow:
 
   # Set the blend method for the material
   plane_material.blend_method = 'BLEND'
+
+# Set the render size
+bpy.context.scene.render.resolution_x = img_size
+bpy.context.scene.render.resolution_y = img_size
 
 # Render the final image
 bpy.context.scene.render.filepath = work_directory + renders_directory + 'render_' + str(render_count).zfill(5) + '.jpg'
