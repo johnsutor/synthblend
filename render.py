@@ -9,12 +9,9 @@ import argparse
 from PIL import Image
 from imageio import imread, imsave
 from albumentations.augmentations.transforms import (
-    GaussianBlur,
     GaussNoise,
-    ColorJitter,
+    HueSaturationValue,
     RandomBrightnessContrast,
-    Rotate,
-    HorizontalFlip,
 )
 import albumentations
 import numpy as np
@@ -47,8 +44,8 @@ parser.add_argument("--phi_max", dest="phi_max", type=float)
 
 options = parser.parse_args()
 
-BLENDER_DIR = "C:\Program Files\Blender Foundation\Blender 2.83"
-NUM_RENDERS = 1
+BLENDER_DIR = "C:\Program Files\Blender Foundation\Blender 2.92"
+NUM_RENDERS = 1000
 
 # Determine the working directory
 WORK_DIR = os.getcwd()
@@ -61,7 +58,7 @@ render = lambda rc: os.system(
     + WORK_DIR
     + " -rc "
     + str(rc + 1)
-    + " -ra 3 -bb COCO"
+    + " -ra 3 ims 256"
 )
 
 # Change to blender and run the render script
@@ -93,11 +90,10 @@ def apply_background(img):
         # Set the image transforms
         transforms = albumentations.Compose(
             [
-                GaussianBlur(blur_limit=(3, 5)),
                 GaussNoise(),
                 # HorizontalFlip(),
                 # Rotate(limit=45),
-                ColorJitter(),
+                HueSaturationValue(hue_shift_limit=5, sat_shift_limit=10, val_shift_limit=50),
                 RandomBrightnessContrast(),
             ]
         )
