@@ -5,6 +5,7 @@ September 25, 2020
 Script for generating many synthetic images 
 """
 import os
+import argparse
 from PIL import Image
 from imageio import imread, imsave
 from albumentations.augmentations.transforms import (
@@ -19,6 +20,32 @@ import albumentations
 import numpy as np
 import random
 from joblib import Parallel, delayed
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--bounding_box",
+    required=False,
+    type=str,
+    help="Bounding box format to use. \nOptions: ('COCO' | 'YOLO') \nDefault none",
+)
+parser.add_argument(
+    "--img_size",
+    required=False,
+    type=int,
+    help="Size, in pixels, of the square image to create \nDefault 1024",
+)
+parser.add_argument(
+    "--models", 
+    required=False,
+    type=str,
+    help="Directory of the models to render \nDefault './models'",
+)
+parser.add_argument("--phi_min", dest="phi_min", type=float)
+parser.add_argument("--phi_max", dest="phi_max", type=float)
+
+
+
+options = parser.parse_args()
 
 BLENDER_DIR = "C:\Program Files\Blender Foundation\Blender 2.83"
 NUM_RENDERS = 1
@@ -68,8 +95,8 @@ def apply_background(img):
             [
                 GaussianBlur(blur_limit=(3, 5)),
                 GaussNoise(),
-                HorizontalFlip(),
-                Rotate(limit=45),
+                # HorizontalFlip(),
+                # Rotate(limit=45),
                 ColorJitter(),
                 RandomBrightnessContrast(),
             ]

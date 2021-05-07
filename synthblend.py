@@ -19,11 +19,10 @@ import mathutils
 import sys
 import argparse
 import json
-import datetime
 import bpy
 import bpy_extras
-import imbuf
 from addon_utils import enable
+from datetime import datetime
 
 # Create the CLI via argparser
 argv = sys.argv[sys.argv.index("--") + 1 :]
@@ -233,6 +232,7 @@ bpy.context.scene.render.resolution_y = img_size
 bpy.context.scene.render.filepath = (
     work_directory + renders_directory + "render_" + str(render_count).zfill(5) + ".jpg"
 )
+bpy.context.scene.render.image_settings.color_depth = '16'
 bpy.ops.render.render(write_still=True)
 
 # Determine the bounding box
@@ -271,12 +271,13 @@ if bounding_box is not None:
 
     # Output coordinates to COCO segmentation format
     elif bounding_box == "COCO":
-        now = (
-            str(datetime.date.day)
+        now = datetime.now()
+        date = (
+            now.strftime("%d")
             + "/"
-            + str(datetime.date.month)
+            + now.strftime("%m")
             + "/"
-            + str(datetime.date.year)
+            + now.strftime("%Y")
         )
 
         # Create the basic image data
@@ -287,7 +288,7 @@ if bounding_box is not None:
                 "coco_url": "https://github.com/johnsutor/synthblend",
                 "height": img_size,
                 "width": img_size,
-                "date_captured": now,
+                "date_captured": date,
                 "flickr_url": "https://github.com/johnsutor/synthblend",
                 "id": str(render_count).zfill(5),
             },
@@ -296,6 +297,23 @@ if bounding_box is not None:
         # Shift vertices to match image size
         xlist = [img_size * x for x in xlist]
         ylist = [img_size * y for y in ylist]
+
+        # Calculate the convex hull (https://code.activestate.com/recipes/117225-convex-hull-and-diameter-of-2d-point-sets/)
+        def orient(p, q, r):
+            # + is clockwise, 0 if colinear, - if counterclockwise
+            return (q[1]-p[1])*(r[0]-p[0]) - (q[0]-p[0])*(r[1]-p[1])
+
+        '''Graham scan to find upper and lower convex hulls of a set of 2d points.'''
+        U = []
+        L = []
+        points = zip(xlist, ylist).sort()
+        for p in points:
+            while len(U) > 1 and orient(U[-2],U[-1],p) <= 0: U.pop()
+            while len(L) > 1 and orient(L[-2],L[-1],p) >= 0: L.pop()
+            U.append(p)
+            L.append(p)
+
+        hull = U.extend(L)
 
         # Calculate the image area based on the shoelace formula
         area = abs(
@@ -341,9 +359,9 @@ if bounding_box is not None:
                     "description": "Synthblend Dataset",
                     "url": "https://github.com/johnsutor/synthblend",
                     "version": "1.0",
-                    "year": str(datetime.date.year),
+                    "year": now.strftime("%Y"),
                     "contributor": "Synthblend",
-                    "date_created": now,
+                    "date_created": date,
                 },
                 "licenses": [
                     {
